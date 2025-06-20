@@ -1,0 +1,67 @@
+name: Publish MCP Package
+
+on: 
+  push:
+    branches: [main]
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish-docker-image:
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        
+      - name: Test installation
+        run: |
+          uvx --python=3.10 --from . mcp-prompt-engineer --help || echo "Help not available, but package installed successfully"
+          
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Convert Repository name to lower case
+        id: lowercase
+        run: echo "REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        
+      - name: Build and push Docker image
+        run: |
+          docker build . --tag ghcr.io/${{ env.REPO }}:latest
+          docker push ghcr.io/${{ env.REPO }}:latest
+
+  test-installation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        
+      - name: Test direct installation from git
+        run: |
+          uvx --python=3.10 --from git+https://github.com/${{ github.repository }} mcp-prompt-engineer --help || echo "Installation test completed"

@@ -1,0 +1,28 @@
+[project]
+name = "mcp-prompt-engineer"
+version = "1.0.0"
+description = "MCP client for accessing AI prompts, tools, and configurations from major platforms"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.3.0",
+    "aiohttp>=3.11.13",
+]
+
+[[project.authors]]
+name = "Ivan Luna"
+email = "ivan@imprvhub.com"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+mcp-prompt-engineer = "mcp_prompt_engineer.main:mcp.run"
+mcp-prompt-engineer-cli = "mcp_prompt_engineer.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_prompt_engineer"]
+
+[tool.hatch.version]
+path = "src/mcp_prompt_engineer/__init__.py"
