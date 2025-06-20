@@ -489,3 +489,4 @@ async def cleanup():
 if __name__ == "__main__":
     import atexit
     atexit.register(lambda: asyncio.run(cleanup()))
+    mcp.run()
